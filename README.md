@@ -4,7 +4,7 @@
 
 This project contains the code used to perform Optical Character Recognition (OCR) to extract tabular data for the Wineka project. 
 
-The initial code for the project is based on <a href="https://livefiredev.com/how-to-extract-table-from-image-in-python-opencv-ocr/">this article explaining how to apply OCR on tabular data</a>
+The initial code for the project is based on <a href="https://livefiredev.com/how-to-extract-table-from-image-in-python-opencv-ocr/">this article explaining how to apply OCR on an image to extract tabular data</a>
 
 <h3>Data format</h3>
 Here is a sample of the data we are trying to extract.
