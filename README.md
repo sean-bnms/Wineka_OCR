@@ -12,3 +12,7 @@ Here is a sample of the data we are trying to extract.
 <h2>Optical Character Recognition: how does it work?</h2>
 
 <h2>Running the project</h2>
+
+<h3>Using the Streamlit App to review and clean the output data table from the OCR</h3>
+
+![tab from the streamlit application allowing to troubleshoot the OCR process](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/app_2.png?raw=true)
