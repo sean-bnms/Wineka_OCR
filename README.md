@@ -14,7 +14,7 @@ Optical Character Recognition is a technology used to extract text from images o
 <br/> <br/>
 OCR rely on several steps, from preprocessing to character recognition: the goal of this section is to give an high level overview of the different concepts behind these steps. Hopefully, understanding these concepts should help framing OCR problems in the future and easily switch between libraries.
 
-<h3>Preprocessing</h3>
+<h3>Preprocessing: isolating the text from the table</h3>
 This step is key: the cleanest the image used for the character recognition the better the quality of the output will be and it is good spending more time on these transformations to obtain good results.
 
 <h4>Removing dependency to colors</h4>
@@ -52,10 +52,25 @@ Once we have isolated the contours we are trying to remove, we can rely on pixel
   <li>then substract this image with all the table lines we want to remove to the original inverted image, which results in the image without the table lines</li>
 </ul>
 
+<h3>Text Extraction: gathering the content of the different cells and translating images to text</h3>
+
+<h4>Detecting the text from each cells</h4>
+This step is using the same fundamentals as described earlier. We:
+<ul>
+  <li>dilate the text blocks with a kernel allowing to discard the spaces between words / letters. The goal is to have a dilation strong enough to create blocks of pixels uniformly distributed (here, all will have a value of 1 or 255 as they are white): these blocks are called <strong>blobs</strong></li>
+  <li>then perform blob detection, which means we find the contour boxes of each blob, which will help find the contours of the text</li>
+  <li>then store each of the text boxes in an array to retain the order of the table to be able to reconstruct it later </li>
+  <li>and finally, slice the image to obtain, for each text box, an image containing only its text</li>
+</ul>
+
+<h4>Extracting the text from each sliced image</h4>
+Finally, we use an OCR model to extract each piece of text from the sliced images: different services exist, for this project the open source models from Tesseract were sufficient. 
+Once the text outputs are all collected, you can store them in a .csv or a database table by reordering the text boxes based on the array created at the previous step.
+
 <h2>Running the project</h2>
 
 <h3>Using the Streamlit App to review and clean the output data table from the OCR</h3>
-It can be tedious to edit text which was not correctly recognized manually from your code editor. The goal of the Streamlit app created in the <strong>app.py</strong> file is to allow quick reviewing of the data obtained via the OCR and to quiclky clean the final .csv file obtained for optimal data quality.
+It can be tedious to edit text which was not correctly recognized with the OCR model manually from your code editor. The goal of the Streamlit app created in the <strong>app.py</strong> file is to allow quick reviewing of the data obtained via the OCR and to quiclky clean the final .csv file obtained for optimal data quality.
 <br/><br/>
 
 ![tab from the streamlit application allowing to troubleshoot the OCR process](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/app_2.png?raw=true)
