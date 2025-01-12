@@ -71,6 +71,23 @@ This step is using the same fundamentals as described earlier. We:
 Finally, we use an OCR model to extract each piece of text from the sliced images: different services exist, for this project the open source models from Tesseract were sufficient (<a href="https://pyimagesearch.com/2021/11/15/tesseract-page-segmentation-modes-psms-explained-how-to-improve-your-ocr-accuracy/">this article is worth checking to learn how to tweak Tesseract parameters</a>). 
 Once the text outputs are all collected, you can store them in a .csv or a database table by reordering the text boxes based on the array created at the previous step.
 
+<h2>Understanding the code</h2>
+
+<h3>Extracting the table from the initial image</h3>
+The first step that the code realizes is to extract the full table from the image. The logic is implemented within the TableExtractor class.
+
+First we preprocess the data as showcased below.
+
+![visual representation of the data transformation occuring on the data sample for table extraction preprocessing](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/tableExtraction_1.png?raw=true)
+
+Then we find all contours in the image and, based on the corner coordonates of the biggest contour, and crop the image accordingly (a transformation is then applied to correct the perspective of the extracted table and add padding around it to make next transformations easier).
+
+![visual representation of the data transformation occuring on the data sample for table extraction based on contours](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/tableExtraction_2.png?raw=true)
+
+<h3>Removing the lines of the table and the icons</h3>
+Then we want to remove the table structure as well as the icons so we only have the text remaining. The logic is implemented in the TableLinesAndIconsRemover class.
+
+
 <h2>Running the project</h2>
 
 <h3>Using the Streamlit App to review and clean the output data table from the OCR</h3>
