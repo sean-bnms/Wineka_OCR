@@ -9,7 +9,7 @@ The initial code for the project is based on <a href="https://livefiredev.com/ho
 <h3>Data format</h3>
 Here is a sample of the data we are trying to extract.
 
-<h2>Optical Character Recognition: how does it work?</h2>
+<h2>Optical Character Recognition on tabular data: how does it work?</h2>
 Optical Character Recognition is a technology used to extract text from images or scanned documents so it can be processed digitally. A common example is the conversion of a picture of a receipt into editable text.
 <br/> <br/>
 OCR rely on several steps, from preprocessing to character recognition: the goal of this section is to give an high level overview of the different concepts behind these steps. Hopefully, understanding these concepts should help framing OCR problems in the future and easily switch between libraries.
@@ -44,6 +44,13 @@ It works like depicted below. For each contour of a table, you want first to sel
 <br/><br/>
 
 ![schema showcasing the difference between erosion and dilation with a horizontal kernel](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/morphologicalOperations.png?raw=true)
+
+<h4>Removing contours from an image</h4>
+Once we have isolated the contours we are trying to remove, we can rely on pixel <strong>addition</strong> and <strong>substraction</strong> operations. It consists in combining the pixels of two images; we usually:
+<ul>
+  <li>add all the eroded images of the table lines togehter, before dilating the resulting image</li>
+  <li>then substract this image with all the table lines we want to remove to the original inverted image, which results in the image without the table lines</li>
+</ul>
 
 <h2>Running the project</h2>
 
