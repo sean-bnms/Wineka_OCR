@@ -36,8 +36,8 @@ Contours can be explained simply as a curve joining all the continuous points (a
 
 To detect these contours we rely on two operations which results from <a href="https://dev.to/marcomoscatelli/a-gentle-introduction-to-convolutions-visually-explained-4c8d">convolution</a> operations:
 <ul>
-  <li>erosion</li>
-  <li>dilation</li>
+  <li><strong>erosion</strong></li>
+  <li><strong>dilation</strong></li>
 </ul>
 
 It works like depicted below. For each contour of a table, you want first to select a kernel which follows the pattern of the contour (e.g. vertical line for columns delimiters, we will take a vertical kernel; horizontal kernel for an horizontal line like in the row delimiters). Then we will first apply erosion to remove any elements from the picture which is not following the contour pattern, then a dilation to amplify the contours and ensure detection.<a href="https://docs.opencv.org/4.x/dd/dd7/tutorial_morph_lines_detection.html"> OpenCV has also an article on selecting the kernel worth checking </a>.
