@@ -46,7 +46,7 @@ It works like depicted below. For each contour of a table, you want first to sel
 ![schema showcasing the difference between erosion and dilation with a horizontal kernel](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/morphologicalOperations.png?raw=true)
 
 <h4>Removing contours from an image</h4>
-Once we have isolated the contours we are trying to remove, we can rely on pixel <strong>addition</strong> and <strong>substraction</strong> operations. It consists in combining the pixels of two images; we usually:
+Once we have isolated the contours we are trying to remove, we can rely on pixel <strong>addition</strong> and <strong>substraction</strong> operations. It consists in combining the pixels of two images by leveraging the corresponding operations on matrixes; we usually:
 <ul>
   <li>add all the eroded images of the table lines togehter, before dilating the resulting image</li>
   <li>then substract this image with all the table lines we want to remove to the original inverted image, which results in the image without the table lines</li>
