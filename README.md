@@ -7,7 +7,11 @@ This project contains the code used to perform Optical Character Recognition (OC
 The initial code for the project is based on <a href="https://livefiredev.com/how-to-extract-table-from-image-in-python-opencv-ocr/">this article explaining how to apply OCR on an image to extract tabular data</a>. The <a href="https://github.com/livefiredev/ocr-extract-table-from-image-python"> public github repo <a/> can also be checked.
 
 <h3>Data format</h3>
-Here is a sample of the data we are trying to extract.
+Here is a sample of the data we are trying to extract. It contains information about wine pairings with meals. It presents a twist compared to usual table extraction use cases as the tables do not only contain text but also colored icons which adds erosion steps during preprocessing.
+<br/><br/>
+
+![sample of the tables we want to extract content from](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/IMG_0147.jpg?raw=true)
+
 
 <h2>Optical Character Recognition on tabular data: how does it work?</h2>
 Optical Character Recognition is a technology used to extract text from images or scanned documents so it can be processed digitally. A common example is the conversion of a picture of a receipt into editable text.
