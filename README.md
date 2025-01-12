@@ -75,7 +75,7 @@ Once the text outputs are all collected, you can store them in a .csv or a datab
 
 <h3>Extracting the table from the initial image</h3>
 The first step that the code realizes is to extract the full table from the image. The logic is implemented within the TableExtractor class.
-
+<br/><br/>
 First we preprocess the data as showcased below.
 
 ![visual representation of the data transformation occuring on the data sample for table extraction preprocessing](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/tableExtraction_1.png?raw=true)
@@ -86,7 +86,23 @@ Then we find all contours in the image and, based on the corner coordonates of t
 
 <h3>Removing the lines of the table and the icons</h3>
 Then we want to remove the table structure as well as the icons so we only have the text remaining. The logic is implemented in the TableLinesAndIconsRemover class.
+<br/><br/>
+We apply different kernels to be able to erode the vertical and horizontal lines of the table as well as the icons it contains. After that, we add the different eroded images, dilate the resulting image and substract it to the inverted image of the table extracted. A cleaning transformation is then applied to remove some of the remaining noise on the image (e.g. lines not completely eroroded because of the image deformations induced by the book structure, by the lightning when the picture was taken...).
 
+![visual representation of the data transformation occuring on the data sample for table extraction based on contours](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/tableErosion.png?raw=true)
+
+<h3>Detecting the text and slicing the image accordingly</h3>
+We then want to extract each piece of text contained in the cells, apply OCR on each of them and recreate the table in a .csv file. The logic for this is implemented in the OcrToTableTool class.
+<br/><br/>
+First we detect the blobs from the image obtained after table and icons erosion.
+
+![visual representation of the data transformation occuring on the data sample for blob detection](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/blobDetection.png?raw=true)
+
+Then we identify the correct text blobs from all blobs collected: a custom logic is implemented to remove non sought blobs. We keep track of the order of the different text boxes to be able to assign each text box to the correct cell when recreating the table later. The different text boxes are then extracted from the image as separated slices: we later apply an OCR model on them to obtain the extracted data.
+
+![visual representation of the data transformation occuring on the data sample for text slicing](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/textSlicing.png?raw=true)
+
+Finally, we recreate the table in a .csv file. A Streamlit app can then be used to easily analyze the data obtained and quickly make edits if needed.
 
 <h2>Running the project</h2>
 
