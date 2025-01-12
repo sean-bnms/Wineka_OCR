@@ -42,6 +42,7 @@ To detect these contours we rely on two operations which results from <a href="h
 
 It works like depicted below. For each contour of a table, you want first to select a kernel which follows the pattern of the contour (e.g. vertical line for columns delimiters, we will take a vertical kernel; horizontal kernel for an horizontal line like in the row delimiters). Then we will first apply erosion to remove any elements from the picture which is not following the contour pattern, then a dilation to amplify the contours and ensure detection.<a href="https://docs.opencv.org/4.x/dd/dd7/tutorial_morph_lines_detection.html"> OpenCV has also an article on selecting the kernel worth checking </a>.
 <br/><br/>
+
 ![schema showcasing the difference between erosion and dilation with a horizontal kernel](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/morphologicalOperations.png?raw=true)
 
 <h2>Running the project</h2>
@@ -49,4 +50,5 @@ It works like depicted below. For each contour of a table, you want first to sel
 <h3>Using the Streamlit App to review and clean the output data table from the OCR</h3>
 It can be tedious to edit text which was not correctly recognized manually from your code editor. The goal of the Streamlit app created in the <strong>app.py</strong> file is to allow quick reviewing of the data obtained via the OCR and to quiclky clean the final .csv file obtained for optimal data quality.
 <br/><br/>
+
 ![tab from the streamlit application allowing to troubleshoot the OCR process](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/app_2.png?raw=true)
