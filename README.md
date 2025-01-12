@@ -64,7 +64,7 @@ This step is using the same fundamentals as described earlier. We:
 </ul>
 
 <h4>Extracting the text from each sliced image</h4>
-Finally, we use an OCR model to extract each piece of text from the sliced images: different services exist, for this project the open source models from Tesseract were sufficient. 
+Finally, we use an OCR model to extract each piece of text from the sliced images: different services exist, for this project the open source models from Tesseract were sufficient (<a href="https://pyimagesearch.com/2021/11/15/tesseract-page-segmentation-modes-psms-explained-how-to-improve-your-ocr-accuracy/">this article is worth checking to learn how to tweak Tesseract parameters</a>). 
 Once the text outputs are all collected, you can store them in a .csv or a database table by reordering the text boxes based on the array created at the previous step.
 
 <h2>Running the project</h2>
