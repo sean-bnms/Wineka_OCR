@@ -41,7 +41,7 @@ To detect these contours we rely on two operations which results from <a href="h
 </ul>
 
 It works like depicted below. For each contour of a table, you want first to select a kernel which follows the pattern of the contour (e.g. vertical line for columns delimiters, we will take a vertical kernel; horizontal kernel for an horizontal line like in the row delimiters). Then we will first apply erosion to remove any elements from the picture which is not following the contour pattern, then a dilation to amplify the contours and ensure detection.
-![schema showcasing the difference between erosion and dilation with a horizontal kernel](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/ErosionVsDilation.png?raw=true)
+![schema showcasing the difference between erosion and dilation with a horizontal kernel](https://github.com/sean-bnms/Wineka_OCR/blob/main/resources/morphologicalOperations.png?raw=true)
 
 <h2>Running the project</h2>
 
