@@ -41,6 +41,7 @@ class OrcProcessor:
     - original_image_path: the path to the original image, used to apply naming conventions to the image slices created.
     - images_folder_path: the path to the folder where the cropped text image are stored
     - table_column_names: a list containing the name of the columns from the table, from left to right. Size should be the same as the expected number of columns.
+    It is used to label the cropped pictures.
     - language: the language of the text we want to recognize with OCR
     '''
     table_bounding_box_array: list
