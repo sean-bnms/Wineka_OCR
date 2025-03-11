@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Protocol
 from enum import StrEnum
 
@@ -10,8 +9,11 @@ from TextBoundingBoxExtractor import TextBoundingBoxExtractor, BoundingBox, Boun
 from TextBoundingSorter import TextBoundingSorter
 from OcrProcessor import OrcProcessor, TesseractLanguage
 from image_processing import ImageHandler, Kernel, KernelShape, Image
+import ocr_result_processing
 
 DEBUG_FOLDER_PATH = "images/debug/"
+OCR_SLICES_FOLDER_PATH = "images/ocr_slices/"
+COLUMN_NAMES = ["Plat", "Type de vin", "Appelation"]
 
 def extract_table(background_color: tuple[int,int,int], image: Image) -> tuple[TableExtractor2,Image]:
     # otsu optimized thresholding method showed better results
@@ -73,7 +75,7 @@ def get_bounding_boxes(image_path:str, extracted_table_path:str) -> tuple[TextBo
     table_columns, bounding_boxes = bounding_box_extractor.run()
     return bounding_box_extractor, table_columns, bounding_boxes
 
-def perform_ocr(bounding_box_array:list, extracted_table_path:str, initial_img_path:str, slices_folder:str):
+def perform_ocr(bounding_box_array:list, extracted_table_path:str, initial_img_path:str, slices_folder:str) -> list[list[str]]:
     img_handler = ImageHandler(image_path=extracted_table_path)
     image = img_handler.load_image()
 
@@ -107,21 +109,11 @@ def debug_transformation_process(processor:TransformationProcessor, img_handler:
         state=state
         )
 
-
-def main():
-    # path to store and load images
-    
-    image_path = "images/IMG_0150.jpg"
-    images_folder_path = "images/ocr_slices/"
-
+### Execute
+def retrieve_csv(image_path:str, background_color:str, icons_colors:list[tuple[int,int,int]]) -> None:
     # initialize the image handler
     img_handler = ImageHandler(image_path=image_path)
     image = img_handler.load_image()
-
-    # some variables for the table extraction
-    background_color = (163, 151, 152)
-    gold_icons_color = (158, 130, 90)
-    red_icons_color = (163, 151, 152)
 
     # table extraction
     extractor, image_with_extracted_table = extract_table(background_color=background_color, image=image)
@@ -134,7 +126,7 @@ def main():
     print("Extraction Completed: \nfinal img: " + extracted_table_path + "\ndebug img: " + extraction_step_debug_path + "\n")
 
     # icons removal
-    icon_remover, image_without_icons = remove_icons(icon_colors=[gold_icons_color, red_icons_color], image_path=extracted_table_path)
+    icon_remover, image_without_icons = remove_icons(icon_colors=icons_colors, image_path=extracted_table_path)
     removed_icons_path = img_handler.store_image(folder_path=DEBUG_FOLDER_PATH, file_name="without_icons.jpg", image=image_without_icons)
     # available values are IconRemovingState enums
     ic_removal_step_debug_path = debug_transformation_process(processor=icon_remover, img_handler=img_handler, state=IconRemovingState.ICONS_FILTERING)
@@ -165,8 +157,44 @@ def main():
         bounding_box_array=table_bounding_box_array, 
         extracted_table_path=extracted_table_path,
         initial_img_path=image_path, 
-        slices_folder=images_folder_path)
+        slices_folder=OCR_SLICES_FOLDER_PATH)
+    print("OCR Completed: \n")
     print(ocr_table)
+    
+    # ocr saving as csv
+    # cleans first the bullet point incorrectly recognized
+    ocr_cleaned_table = ocr_result_processing.clean_bullet_points(raw_table=ocr_table)
+    csv_path = ocr_result_processing.store_table_as_csv(table=ocr_cleaned_table, column_names=COLUMN_NAMES, csv_name=img_handler.get_image_name())
+    print("CSV Table Saved: \n" + csv_path + "\n")
+
+
+
+
+
+
+def main():
+    # some variables for the table extraction
+    background_color = (163, 151, 152)
+    gold_icons_color = (158, 130, 90)
+    red_icons_color = (163, 151, 152)
+    icons_colors = [gold_icons_color, red_icons_color]
+
+    # path to store and load images
+    image_path = "images/IMG_0148.jpg"
+    retrieve_csv(
+        image_path=image_path,
+        background_color=background_color,
+        icons_colors=icons_colors
+        )
+
+    # for i in range(1):
+    #     # path to store and load images
+    #     image_path = f"images/IMG_0{147+i}.jpg"
+    #     retrieve_csv(
+    #         image_path=image_path,
+    #         background_color=background_color,
+    #         icons_colors=icons_colors
+    #         )
 
 if __name__ == "__main__":
     main()
