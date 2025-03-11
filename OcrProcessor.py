@@ -50,7 +50,7 @@ class OrcProcessor:
     table_column_names: list[str]
     language: TesseractLanguage
 
-    def run(self):
+    def run(self) -> list[list[str]]:
         table = []
         image_number = 0
         for i in range(len(self.table_bounding_box_array)):
