@@ -5,7 +5,7 @@ import pandas as pd
 
 def clean_bullet_points(raw_table:list[list[str]]):
     # bullet points are wrongly recognized as these characters
-    pattern = r"\.\s|\*\s|\+\s|-\s"
+    pattern = r"\.\s|\*\s|\+\s|\-\s"
 
     clean_list = []
     for row in raw_table:
@@ -33,27 +33,30 @@ def store_table_as_csv(table:list[list[str]], column_names:list[str], csv_name:s
     - row_delimiter: delimiter for the file, defaulted to '|'
     '''
     df = pd.DataFrame(data=table, columns=column_names)
-    path = Path("outputs/" + csv_name + ".csv")
-    df.to_csv(path_or_buf=path, sep="|")
+    path = "outputs/" + csv_name + ".csv"
+    df.to_csv(path_or_buf=Path(path), sep="|")
+    return path
 
 
 def main():
     ocr_results = [
-        ['Andouille de Guéméné', 'Blancs vifs et secs', 'Vouvray, muscadet, Sancerre, quincy, reuilly'], 
-        ['Andouillette grillée', '. Blancs vifs + Rouges souples', '. Chablis, saint-bris, mâcon - Mâcon, beaujolais-villages, Minervois'], 
-        ['Boudin blanc', '. Blancs vifs et minéraux . Effervescents', '. Alsace riesling, alsace pinot blanc, savennières, pouilly-fumé + Champagne'], 
-        ['Boudin noir', 'Rouges charnus de caractère', 'Corbières, saint-joseph, cornas, saint-émilion, madiran, cahors, béarn'], 
-        ['Fromage de tête', '. Blancs vifs et savoureux + Rouges fruités et vifs', '- Beaujolais, petit-chablis, saint-bris + Chiroubles, coteaux-du-quercy'], 
-        ['Jambon cru', '+ Blancs savoureux + Rouges charnus', '+ Rancio sec du Roussillon (IGP), collioure + Gigondas, irouléguy, patrimonio, madiran'], 
-        ['Jambon cuit et persillé', '+ Blancs tendres . Rouges souples', '+ Graves, marsannay + Saint-nicolas-de-bourgueil, irancy, bou rgogne-passetoutgrain, beaujolais-villages'], 
-        ['Pâte de campagne', 'Rouges fruités et fringants', 'Crus du Beaujolais (saint-amour, fleurie, brouilly, côte-de-brouilly, juliénas...) et tous les rouges gouleyants à base de gamay où de grenache'], 
-        ['Rillettes d’oie', 'Blancs expressifs et vifs', 'Bergerac, alsace riesling, sance reuilly, quincy, anjou']
-        ]
+        ['Avocats aux crevettes', 'Blancs fins et savoureux', 'Mâcon, beaujolais'], 
+        ['Beignets de crevettes', '+ Blancs vifs . Blancs effervescents', '- Alsace riesling + Champagne, crémants'], 
+        ['Beignets de légumes', 'Blancs frais et fruités', 'Côtes-de-provence, vin-de-corse'], 
+        ['Bricks au thon', 'Rosés épicés et charnus', 'Languedoc, côtes-de-provence'], 
+        ['Carpaccio de bœuf', 'Rouges tendres et fringants', 'Beaujolais, anjou-gamay'], 
+        ['Carpaccio et tartare de saumon', 'Blancs séveux au fruité frais', 'Entre-deux-mers, picpoul-de-pinet (languedoc)'], 
+        ['Cassolette de fruits de mer', 'Blancs vifs et minéraux', 'Pouilly-fumé, alsace riesling'], 
+        ['Cassolette de poisson', 'Blancs fruités et onctueux', 'Saint-véran, minervois'], 
+        ['Escargots au beurre d’ail', '- Blancs bien secs + Rosés épices', '+ Chablis bien minéral, quincy, reuilly, pouilly-fumé + Languedoc, costières-de-nîmes (tavel, lirac, côtes-de- provence, bandol, côtes-du-roussillon..)'], 
+        ['Flammekueche', 'Blancs vifs et fruités', 'Alsace sylvaner, alsace pinot blanc'], ['Melon au jambon', '+ Rosés généreux + Blancs moelleux', '+ Tavel, lirac, bandol, bellet + Muscat-de-mireval'], 
+        ['Pissaladière', 'Blancs tendres et aromatiques', 'Côtes-de-provence, patrimonio'], ['Pizza aux anchois', '+ Blancs secs + Rosés épicés', '+ Lirac * Lirac, tavel, côtes-de-provence, cassis, coteaux-varois-en-provencé']]
     
     table_column_names = ["Plat", "Type de vin", "Appelation"]
     
     clean_table = clean_bullet_points(raw_table=ocr_results) 
     store_table_as_csv(table=clean_table, column_names=table_column_names, csv_name="test")
+
 
 
 
