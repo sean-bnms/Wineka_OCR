@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from enum import StrEnum, Enum
 import subprocess
-from typing import Protocol
 import re
 
 import image_processing
