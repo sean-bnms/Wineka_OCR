@@ -1,13 +1,17 @@
 import streamlit as st
 import pandas as pd
-from main import extract_text_as_csv
+from main import retrieve_csv
 from pathlib import Path
 import os
 from PIL import Image
 
 OCR_FINAL_PATH = "outputs"
 TABLE_INPUT_PATH = "images"
-DEBUG_PATH = "images/debug"
+DEBUG_PATH = "images/debug/"
+
+BACKGROUND_COLOR = (163, 151, 152)
+GOLD_ICONS_COLOR = (158, 130, 90)
+RED_ICONS_COLOR = (163, 151, 152)
 
 
 # files handling
@@ -18,16 +22,20 @@ def collect_images():
             img_path.append(file)
     return img_path
 
-def get_ocr(path_image):
+def get_ocr(image_path:str) -> None:
     ocrNotPerformed = True
     for file in os.listdir(Path(OCR_FINAL_PATH)):
         path_file = Path(file)
-        if path_file.stem == Path(path_image).stem:
+        if path_file.stem == Path(image_path).stem:
             print("OCR already performed")
             ocrNotPerformed = False
             break
     if ocrNotPerformed:
-        extract_text_as_csv(path_image=path_image)
+        retrieve_csv(
+        image_path=image_path,
+        background_color=BACKGROUND_COLOR,
+        icons_colors=[GOLD_ICONS_COLOR,RED_ICONS_COLOR]
+        )
 
 # buttons next and previous
 def next(): 
@@ -35,7 +43,7 @@ def next():
 def prev(): 
     st.session_state.counter -= 1
 
-def load_df(path_ocr):
+def load_df(path_ocr:str) -> pd.DataFrame:
     return pd.read_csv(filepath_or_buffer=Path(path_ocr), delimiter="|")
 
 # INITIALISATION
@@ -58,43 +66,53 @@ def st_main():
         with tab1:
             ## Select image based on the current counter
             path_image = TABLE_INPUT_PATH + "/" + table_imgs[st.session_state.counter]
+            # image is not shown vertical by default
             image = Image.open(Path(path_image)).rotate(-90)
 
             col1, col2 = st.columns(2)
             with col1:
                 st.header(f"Input image: {Path(path_image).stem} ")
                 st.image(image=image)
-            get_ocr(path_image=path_image)
+            # performs OCR if needed
+            get_ocr(image_path=path_image)
+            # loads the dataframe containing the OCR results
             path_ocr = OCR_FINAL_PATH + "/" + Path(path_image).stem + ".csv"
             processed_df = load_df(path_ocr=path_ocr)   
             with col2:
+                # the form allows us to capture changes on the table
                 with st.form("my_form"):
                     st.header("OCR Table")
+                    # creates a table UI, with editable rows and no Index showing
                     edited_df = st.data_editor(processed_df, num_rows="dynamic", hide_index=True)
                     submitted = st.form_submit_button("Submit")
+                # upon submission, the csv file is updated
                 if submitted:
                     print("Edited Dataframe")
-                    edited_df.to_csv(path_or_buf=Path(path_ocr), sep="|")
+                    edited_df.to_csv(path_or_buf=Path(path_ocr), sep="|", index=False)
         
         with tab2:
-            path_image_table_extraction = DEBUG_PATH + "/table_extraction/" + table_imgs[st.session_state.counter].split(".jpg")[0] + "_8_perspective_corrected_with_padding.jpg"
+            path_image_table_extraction = DEBUG_PATH + table_imgs[st.session_state.counter].split(".jpg")[0] + "_extracted_table.jpg"
             image_table_extraction = Image.open(Path(path_image_table_extraction))
-            path_image_lines_removal = DEBUG_PATH + "/lines_removal/" + table_imgs[st.session_state.counter].split(".jpg")[0] + "_10_image_without_lines_noise_removed.jpg"
+            path_image_icons_removal = DEBUG_PATH + table_imgs[st.session_state.counter].split(".jpg")[0] + "_without_icons.jpg"
+            image_icons_removal = Image.open(Path(path_image_icons_removal))
+            path_image_lines_removal = DEBUG_PATH + table_imgs[st.session_state.counter].split(".jpg")[0] + "_without_lines.jpg"
             image_lines_removal = Image.open(Path(path_image_lines_removal))
-            path_image_ocr = DEBUG_PATH + "/ocr/" + table_imgs[st.session_state.counter].split(".jpg")[0] + "_4_updated_bounding_boxes.jpg"
+            path_image_ocr = DEBUG_PATH + table_imgs[st.session_state.counter].split(".jpg")[0] + "_final_bounding_boxes.jpg"
             image_ocr = Image.open(Path(path_image_ocr))
-            col1, col2, col3 = st.columns(3)
+            col1, col2, col3, col4 = st.columns(4)
 
             with col1:
                 st.header(f"Table extraction")
                 st.image(image=image_table_extraction)
             with col2:
-                st.header(f"Lines/icons removal")
-                st.image(image=image_lines_removal)
+                st.header(f"Icons removal")
+                st.image(image=image_icons_removal)
             with col3:
+                st.header(f"Lines removal")
+                st.image(image=image_lines_removal)
+            with col4:
                 st.header(f"Text box detection")
                 st.image(image=image_ocr)
-            
 
 st_main()
 

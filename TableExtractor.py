@@ -1,170 +1,257 @@
-# Mainly inspired by: https://livefiredev.com/how-to-extract-table-from-image-in-python-opencv-ocr/ 
-# Changes are adaptation to colored background and non-defined external contour for the table
-# Storing of debug files was also adapted to our use case
+from dataclasses import dataclass, field
+from enum import StrEnum, auto
 
-import cv2
-import numpy as np
-from pathlib import Path
+import image_processing
+from ColorFilter import ColorFilter, Color
+from ImagePreProcessor import ImagePreProcessor, Thresholder, GlobalThresholder, GlobalOptimizedThresholder
+from MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
 
 
+class TableExtractionState(StrEnum):
+    PREPROCESSING = auto()
+    DILATION = auto()
+    ALL_CONTOURS = auto()
+    TABLE_EDGES = auto()
+    TABLE_EXTRACTION = auto()
+
+
+@dataclass
+class RectangleEdges:
+    top_left: tuple[int, int]
+    top_right: tuple[int, int]
+    bottom_right: tuple[int, int]
+    bottom_left: tuple[int, int]
+
+
+@dataclass
 class TableExtractor:
-    def __init__(self, image_path, icon_dict_1, icon_dict_2):
-        self.image_path = image_path 
-        self.color_limit_1 = icon_dict_1
-        self.color_limit_2 = icon_dict_2
-    
-    def execute(self):
-        self.read_image()
-        #pre-processing to improve the contour detection
-        print(f"Preprocessing START: ")
-        self.filter_background_color()
-        self.store_process_image("0_bckgd_filtered.jpg", self.background_color_filtered_image)
-        self.convert_image_to_grayscale()
-        self.store_process_image("1_grayscaled.jpg", self.grayscale_image)
-        self.threshold_image()
-        self.store_process_image("2_thresholded.jpg", self.thresholded_image)
-        self.invert_image()
-        self.store_process_image("3_inverteded.jpg", self.inverted_image)
-        self.dilate_image()
-        self.store_process_image("4_dilated.jpg", self.dilated_image)
-        #isolates table from the background
-        print(f"Table extraction START: ")
-        self.find_contours()
-        self.store_process_image("5_all_contours.jpg", self.image_with_all_contours)
-        table_corner_edges = self.get_table_corner_edges()
-        print(f"Edges are, from TOP LEFT to BOTTOM LEFT (clockwise), {table_corner_edges}")
-        self.visualize_table_corner_edges(table_corner_edges=table_corner_edges)
-        self.store_process_image("6_only_table_corner_edges.jpg", self.image_with_only_table_corner_edges)
-        self.calculate_new_width_and_height_of_image(table_corner_edges=table_corner_edges)
-        print(self.new_image_width, self.new_image_height)
-        self.apply_perspective_transform(table_corner_edges=table_corner_edges)
-        self.store_process_image("7_perspective_corrected.jpg", self.perspective_corrected_image)
-        self.add_10_percent_padding()
-        self.store_process_image("8_perspective_corrected_with_padding.jpg", self.perspective_corrected_image_with_padding)
-        return self.perspective_corrected_image_with_padding
+    '''
+    Extract the table within an image.
+    - image: the mathematical representation of the source image, \n
+    - threshold: the thresholding method used to obtain a binary colored image, \n
+    - background_color: (Optional) The RGB color of the background of the image, if its is different from the table internal color
+    '''
+    image: image_processing.Image
+    thresholder: Thresholder
+    background_color: tuple[int, int, int] | None = None
+    _transformation_states: list[str] = field(default_factory= lambda: [state.value for state in TableExtractionState])
 
-    def read_image(self):
-        self.image = cv2.imread(str(self.image_path.resolve())) #OpenCV cannot handle Path objects, it expects strings
-
-
-    def filter_background_color(self):
-        hsv = cv2.cvtColor(self.image, cv2.COLOR_BGR2HSV)
-        #mask1
-        lower1 = self.color_limit_1["lower"]
-        upper1 = self.color_limit_1["upper"]
-        mask_1 = cv2.inRange(hsv, lower1, upper1) 
-        #mask2
-        lower2 = self.color_limit_2["lower"]
-        upper2 = self.color_limit_2["upper"]
-        mask_2 = cv2.inRange(hsv, lower2, upper2) 
-        mask = mask_1 + mask_2
-        # apply morphology
-        kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (20,20))
-        morph = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-        # invert morp image
-        mask = 255 - morph
-        # apply mask to image
-        self.background_color_filtered_image = cv2.bitwise_and(self.image, self.image, mask=mask)
-
-    def convert_image_to_grayscale(self):
-        self.grayscale_image = cv2.cvtColor(self.background_color_filtered_image, cv2.COLOR_BGR2GRAY)
-    
-    def threshold_image(self):
-        self.thresholded_image = cv2.threshold(self.grayscale_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1] #OTSU method finds the best threshold possible for binary color attribution
-
-    def invert_image(self):
-        self.inverted_image = cv2.bitwise_not(self.thresholded_image)
-    
-    def dilate_image(self):
-        self.dilated_image = cv2.dilate(self.inverted_image, None, iterations=5)
-
-    def find_contours(self):
-        self.contours, self.hierarchy = cv2.findContours(self.dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        # Below lines are added to show all contours, for debugging purposes
+    def run(self) -> image_processing.Image:
+        '''
+        Extracts the table from the image provided and returns it with a white padding to ease future morphological transformations
+        '''
+        # preprocess image to remove color dependency
+        # obtain an image with black background and white lines and characters
+        self.preprocessed_image = self.preprocess_image()
+        
+        # apply dilation to make contours more recognizable
+        dilation_transformer = MorphologicalTransformer(image=self.preprocessed_image, operation=MorphologicalOperation.DILATION)
+        self.dilated_image = dilation_transformer.apply()
+        
+        # start contour recognition
+        contours = image_processing.get_contours(image=self.dilated_image, collectHierarchy=False, useApproximation=True)
         self.image_with_all_contours = self.image.copy()
-        cv2.drawContours(self.image_with_all_contours, self.contours, -1, (0, 255, 0), 3)
+        self.visualize_contours(image=self.image_with_all_contours, contours=contours)
+        
+        # identify the table edges
+        table_edges = self.get_table_edges(contours=contours)
+        self.image_with_table_edges = self.image.copy()
+        self.visualize_table_edges(image=self.image_with_table_edges, table_edges=table_edges)
+        
+        # extracts the table
+        self.extracted_table_image = self.resize_image(table_edges=table_edges)
 
-    def get_table_corner_edges(self):
-        # Initiate variables to track the table angle coordinates
-        height = self.image.shape[0]
-        width =  self.image.shape[1]
-        x_table_min, x_table_max, y_table_min, y_table_max = width, 0, height, 0
-        coordinates = []
-        table_corner_edges = []
+        # stores the transformations for debugging purposes
+        self.transformation_states_mapping = self.get_transformation_states_mapping()
 
-        self.contours, self.hierarchy = cv2.findContours(self.dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        for contour in self.contours:
-            perimeter = cv2.arcLength(contour, True) #True means the contour is expected to be closed
-            approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
-            # Used to flatted the array containing the co-ordinates of the vertices. 
-            n = approx.ravel() 
-            i = 0
+        # adds padding to ease line detection for future morphological operations
+        return image_processing.add_padding(image=self.extracted_table_image, percentage=5)
 
-            for j in n : 
-                if(i % 2 == 0): 
-                    x = n[i] 
-                    y = n[i + 1] 
-                    coordinates.append((x,y))
-                    if  10 < x < width - 10: # image edges need to be removed, put a 10px margin
-                        if x < x_table_min:
-                            x_table_min = x
-                        if x > x_table_max:
-                            x_table_max = x
-                    if  10 < y < height - 10: # image edges need to be removed, put a 10px margin
-                        if y < y_table_min:
-                            y_table_min = y
-                        if y > y_table_max:
-                            y_table_max = y
-                i = i + 1
 
-        # String containing the co-ordinates. 
-        string_top_left = (x_table_min, y_table_min) 
-        string_bottom_left = (x_table_min, y_table_max) 
-        string_top_right = (x_table_max, y_table_min) 
-        string_bottom_right = (x_table_max, y_table_max) 
-        optimal_edges = [string_top_left, string_top_right, string_bottom_right, string_bottom_left]
-        print(optimal_edges)
+    def preprocess_image(self) -> image_processing.Image: 
+        '''
+        Applies background color filtering to the image and converts it to a binary image, with black background and white lines / characters.
+        '''
+        if self.background_color != None:
+            color_filter = ColorFilter(color=Color(rgb_color=self.background_color), image=self.image)
+            self.filtered_image = self.filter_background_color(color_filter=color_filter)
+            image_preprocessor = ImagePreProcessor(image=self.filtered_image, thresholder=self.thresholder)
+        # no need for background color filtering
+        else:
+            self.filtered_image = None
+            image_preprocessor = ImagePreProcessor(image=self.image, thresholder=self.thresholder)
 
-        for j in range(len(optimal_edges)):
-            distances = [self.calculate_distance_between_points(optimal_edges[j][0], optimal_edges[j][1], coordinates[i][0], coordinates[i][1]) for i in range(len(coordinates))]
-            x_real, y_real = coordinates[distances.index(min(distances))]
-            table_corner_edges.append((x_real, y_real))
-        return table_corner_edges
+        self.binary_image = self.convert_to_binary_representation(image_preprocessor=image_preprocessor)
+        # inversion is needed to perform dilation: as kernel shapes are created with white pixels,
+        # we need the contours of the table which we want to dilate to be represented by white pixels
+        return image_processing.invert_image(image=self.binary_image)
+
+    def filter_background_color(self, color_filter:ColorFilter) -> image_processing.Image:
+        return color_filter.filter()
     
-    def calculate_distance_between_points(self, x0,y0,x1,y1):
-        return np.sqrt((x0-x1)**2 + (y0-y1)**2)
+    def convert_to_binary_representation(self, image_preprocessor:ImagePreProcessor) -> image_processing.Image:
+        return image_preprocessor.apply()
     
-    def visualize_table_corner_edges(self, table_corner_edges):
-        self.image_with_only_table_corner_edges = self.image.copy()
-        for x,y in table_corner_edges:
-            # Display coordinates 
-            cv2.putText(self.image_with_only_table_corner_edges , str(x) + " " + str(y), (x, y), 
-                                    cv2.FONT_HERSHEY_COMPLEX, 0.5, (255, 0, 0)) 
-            cv2.circle(self.image_with_only_table_corner_edges , (x,y), 10, (255, 0, 0), -1)    
-  
-    def calculate_new_width_and_height_of_image(self, table_corner_edges):
-        existing_image_width = self.image.shape[1]
-        existing_image_width_reduced_by_10_percent = int(existing_image_width * 0.9)
-        distance_between_top_left_and_top_right = self.calculate_distance_between_points(table_corner_edges[0][0], table_corner_edges[0][1], table_corner_edges[1][0], table_corner_edges[1][1])
-        distance_between_top_left_and_bottom_left = self.calculate_distance_between_points(table_corner_edges[0][0], table_corner_edges[0][1], table_corner_edges[3][0], table_corner_edges[3][1])
-        aspect_ratio = distance_between_top_left_and_bottom_left / distance_between_top_left_and_top_right
-        self.new_image_width = existing_image_width_reduced_by_10_percent
-        self.new_image_height = int(self.new_image_width * aspect_ratio)
+    def visualize_contours(self, image:image_processing.Image, contours: list) -> None:
+        image_processing.draw_contours(image=image, contours=contours)
     
-    def apply_perspective_transform(self, table_corner_edges):
-        pts1 = np.float32([ [table_corner_edges[i][0], table_corner_edges[i][1]] for i in range(len(table_corner_edges))])
-        pts2 = np.float32([[0, 0], [self.new_image_width, 0], [self.new_image_width, self.new_image_height], [0, self.new_image_height]])
-        matrix = cv2.getPerspectiveTransform(pts1, pts2)
-        self.perspective_corrected_image = cv2.warpPerspective(self.image, matrix, (self.new_image_width, self.new_image_height))
+    # The approach to compute the contours with a rectangular shape to keep table and then pick the ones with the biggest area
+    # was abandoned because it wouldn't always categorize the table contour as rectangular
+    # Instead, we look for optimal coordinates of the edges of the table, then compute the real edges based on distances between point
     
-    def add_10_percent_padding(self):
-        image_height = self.image.shape[0]
-        padding = int(image_height * 0.1)
-        self.perspective_corrected_image_with_padding = cv2.copyMakeBorder(self.perspective_corrected_image, padding, padding, padding, padding, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    def get_contour_extremums(self, contour:list) -> tuple[int,int,int,int]:
+        '''
+        Computes the extremum values for a contour coordinates, along both x and y axis 
+        - contour: a contour computed from the binary image analyzed
+        '''
+        x_values = [point[0][0] for point in contour]
+        y_values = [point[0][1] for point in contour]
+        x_max = max(x_values)
+        y_max = max(y_values)
+        x_min = min(x_values)
+        y_min = min(y_values)
+        return x_max, x_min, y_max, y_min
+    
+    def get_optimal_table_edges(self, contours:list) -> RectangleEdges:
+        '''
+        Computes the optimal edges of the table, if the image had no deformation.
+        - contours: contours from the image, here their approximation is expected to avoid noise
+        '''
+        # intialize table contours
+        height, width = self.image.shape[0], self.image.shape[1]
+        x_max_table, x_min_table, y_max_table , y_min_table = 0, width,0, height
+        for contour in contours:
+            extremums = self.get_contour_extremums(contour=contour)
+            # adds margin to remove the picture frame coordinates which are also detected as contours
+            x_max_table = extremums[0] if extremums[0] > x_max_table and extremums[0] < width - 10 else x_max_table
+            x_min_table = extremums[1] if extremums[1] < x_min_table and extremums[1] > 10 else x_min_table
+            y_max_table = extremums[2] if extremums[2] > y_max_table and extremums[2] < height - 10 else y_max_table
+            y_min_table = extremums[3] if extremums[3] < y_min_table and extremums[3] > 10 else y_min_table
+        return RectangleEdges(
+            top_left=(x_min_table, y_min_table), 
+            top_right=(x_max_table, y_min_table), 
+            bottom_right=(x_max_table, y_max_table), 
+            bottom_left=(x_min_table, y_max_table)
+            )
+    
+    def calculate_distance(self, point1:tuple[int, int], point2:tuple[int, int]):
+        return ((point1[0]-point2[0])**2 + (point1[1]-point2[1])**2)**0.5
 
-    def store_process_image(self, file_name, image):
-        path = Path("images/debug/table_extraction/" + self.image_path.stem + "_" + file_name)
-        cv2.imwrite(str(path.resolve()), image) #OpenCV cannot handle Path objects, it expects strings
+    def get_closest_point(self, point: tuple[int, int], contours:list) -> tuple[int, int]:
+        '''
+        Calculates for a given point coordinates, which point of coordinates (x,y) from the contours detected in the image is the closest.
+        - point: one of the optimal edge for the table, as we want to find the real points before extracting the table
+        - contours: the list of approximated contours for the binary image
+        '''
+        # initialization
+        closest_distance = 1000
+        closest_point = (0,0)
+        
+        # computes closest point
+        for contour in contours:
+            distances = [self.calculate_distance(point1=point, point2=(contour_pt[0][0], contour_pt[0][1])) for contour_pt in contour]
+            closest_pt_idx = distances.index(min(distances))
+            if distances[closest_pt_idx] < closest_distance:
+                closest_point = contour[closest_pt_idx]
+                closest_distance = distances[closest_pt_idx]
+
+        # returns the coordinates as a tupple as it is to be used in the RectangleEdges object attributes
+        return (closest_point[0][0], closest_point[0][1])
     
+    def get_table_edges(self, contours:list) -> RectangleEdges:
+        # approximate contours to make it more robust to image noise
+        contour_approximations = [image_processing.get_contour_approximation(contour=contours[i], eps=0.02, isContourClosed=True) for i in range(len(contours))]
+        optimal_edges = self.get_optimal_table_edges(contours=contour_approximations)
+        # we want to find the real table points, to account for image deformations
+        return RectangleEdges(
+            top_left=self.get_closest_point(point=optimal_edges.top_left, contours=contour_approximations),
+            top_right=self.get_closest_point(point=optimal_edges.top_right, contours=contour_approximations),
+            bottom_right=self.get_closest_point(point=optimal_edges.bottom_right, contours=contour_approximations),
+            bottom_left=self.get_closest_point(point=optimal_edges.bottom_left, contours=contour_approximations)
+        )
+    
+    def visualize_table_edges(self, image:image_processing.Image, table_edges:RectangleEdges) -> None:
+        '''
+        Draws on the image cercles to represent the 4 edges detected for the table with their coordinates.
+        - image: the image on which we want to draw
+        - edges: the coordinates calculated for the table
+        '''
+        def visualize(image:image_processing.Image, point:tuple[int,int]) -> None:
+            text_annotation = str(point[0]) + ", " + str(point[1])
+            image_processing.annotate_point(image=image, point=point, text=text_annotation)
+            image_processing.draw_circle(image=image, point=point, radius=10)
+        
+        edges = [table_edges.top_left, table_edges.top_right, table_edges.bottom_right, table_edges.bottom_left]
+        for edge in edges:
+            visualize(image=image, point=edge)
+
+    def get_resized_image_dimensions(self, table_edges:RectangleEdges) -> tuple[int,int]:
+        image_width = self.image.shape[1]
+        image_width_reduced_by_10_percent = int(image_width * 0.9)
+        table_width = self.calculate_distance(point1=table_edges.top_left, point2=table_edges.top_right)
+        table_height = self.calculate_distance(point1=table_edges.top_left, point2=table_edges.bottom_left)
+        aspect_ratio = table_height / table_width
+        new_image_width = image_width_reduced_by_10_percent
+        new_image_height = int(new_image_width * aspect_ratio)
+        return new_image_width, new_image_height
+
+    def resize_image(self, table_edges:RectangleEdges) -> image_processing.Image:
+        '''
+        Extracts the table from the original image by applying a perspective transformation on it.
+        - table_edges: the coordinates of the table corner edges calculated via contouring
+        '''
+        final_image_dimensions = self.get_resized_image_dimensions(table_edges=table_edges)
+        table_corner_edges = [table_edges.top_left, table_edges.top_right, table_edges.bottom_right, table_edges.bottom_left]
+        return image_processing.apply_perspective_transformation(image=self.image, table_corner_edges=table_corner_edges, final_image_dimensions=final_image_dimensions)
+    
+    ### TRANSFORMATION STATES HANDLING
+
+    def get_transformation_states_mapping(self):
+        return {
+            TableExtractionState.PREPROCESSING: self.preprocessed_image,
+            TableExtractionState.DILATION: self.dilated_image,
+            TableExtractionState.ALL_CONTOURS: self.image_with_all_contours,
+            TableExtractionState.TABLE_EDGES: self.image_with_table_edges,
+            TableExtractionState.TABLE_EXTRACTION: self.extracted_table_image
+        }
+    
+    def get_transformation_states(self):
+        return self._transformation_states
 
 
+def main():
+    img_handler = image_processing.ImageHandler(image_path="images/IMG_0148.jpg")
+    image = img_handler.load_image()
+
+    # extraction with a simple thresholder
+    table_extractor_1 = TableExtractor(
+        image=image,
+        background_color=(163, 151, 152),
+        thresholder=GlobalThresholder()
+    )
+    simple_threshold_extraction = table_extractor_1.run()
+    # extraction with a global thresholder optimized with Otsu method
+    table_extractor_2 = TableExtractor(
+        image=image,
+        background_color=(163, 151, 152),
+        thresholder=GlobalOptimizedThresholder()
+    )
+    otsu_extraction = table_extractor_2.run()
+
+    # store the results for comparison of thresholding methods
+    folder_path = "images/debug/"
+    img_path_1 = img_handler.store_image(file_name="simple_threshold.jpg", folder_path=folder_path, image=simple_threshold_extraction)
+    img_path_2 = img_handler.store_image(file_name="otsu.jpg", folder_path=folder_path, image=otsu_extraction)
+    img_path_3 = img_handler.store_debug_image(
+        folder_path=folder_path,
+        state_mapping=table_extractor_2.get_transformation_states_mapping(),
+        states=table_extractor_2.get_transformation_states(),
+        state=TableExtractionState.TABLE_EDGES
+        )
+    print(img_path_1)
+    print(img_path_2)
+    print(img_path_3)
+
+
+if __name__ == "__main__":
+    main()
