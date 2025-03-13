@@ -1,3 +1,5 @@
 /__pycache__
 /images
 **/.DS_Store
+/ocr_table_operations/__pycache__
+/cv_operations/__pycache__
