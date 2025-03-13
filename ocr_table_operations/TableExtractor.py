@@ -1,10 +1,16 @@
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
-import image_processing
-from ColorFilter import ColorFilter, Color
-from ImagePreProcessor import ImagePreProcessor, Thresholder, GlobalThresholder, GlobalOptimizedThresholder
-from MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
+# allows modules to access modules from outside the package
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# import modules from the project
+import image_processing as image_processing
+from cv_operations.ColorFilter import ColorFilter, Color
+from cv_operations.ImagePreProcessor import ImagePreProcessor, Thresholder, GlobalThresholder, GlobalOptimizedThresholder
+from cv_operations.MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
 
 
 class TableExtractionState(StrEnum):

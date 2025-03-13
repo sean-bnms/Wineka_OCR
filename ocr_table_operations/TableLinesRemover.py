@@ -1,9 +1,15 @@
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
-import image_processing
-from MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
-from ImagePreProcessor import ImagePreProcessor, GlobalThresholder
+# allows modules to access modules from outside the package
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# import modules from the project
+import image_processing as image_processing
+from cv_operations.MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
+from cv_operations.ImagePreProcessor import ImagePreProcessor, GlobalThresholder
 
 class LinesRemovingState(StrEnum):
     BINARY_REPRESENTATION = auto()
@@ -117,7 +123,7 @@ class TableLinesRemover:
         return self._transformation_states
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_image_without_icons.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_without_icons.jpg")
     image = img_handler.load_image()
     
     table_lines_remover = TableLinesRemover(

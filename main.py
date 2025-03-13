@@ -1,13 +1,13 @@
 from typing import Protocol
 from enum import StrEnum
 
-from ImagePreProcessor import GlobalOptimizedThresholder, GlobalThresholder
-from TableExtractor import TableExtractor, TableExtractionState
-from TableIconsRemover import TableIconsRemover, IconRemovingState
-from TableLinesRemover import TableLinesRemover, LinesRemovingState
-from TextBoundingBoxExtractor import TextBoundingBoxExtractor, BoundingBox, BoundingBoxExtractionState
-from TextBoundingSorter import TextBoundingSorter
-from OcrProcessor import OrcProcessor, TesseractLanguage
+from cv_operations.ImagePreProcessor import GlobalOptimizedThresholder, GlobalThresholder
+from ocr_table_operations.TableExtractor import TableExtractor, TableExtractionState
+from ocr_table_operations.TableIconsRemover import TableIconsRemover, IconRemovingState
+from ocr_table_operations.TableLinesRemover import TableLinesRemover, LinesRemovingState
+from ocr_table_operations.TextBoundingBoxExtractor import TextBoundingBoxExtractor, BoundingBox, BoundingBoxExtractionState
+from ocr_table_operations.TextBoundingSorter import TextBoundingSorter
+from ocr_table_operations.OcrProcessor import OrcProcessor, TesseractLanguage
 from image_processing import ImageHandler, Kernel, KernelShape, Image
 import ocr_result_processing
 

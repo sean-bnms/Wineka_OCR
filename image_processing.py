@@ -336,24 +336,3 @@ class ImageHandler:
     def get_image_name(self) -> str:
         return Path(self.image_path).stem
 
-
-def main():
-    # r_bckgd, g_bckgd, b_bckgd = 163, 151, 152
-    # h_bckgd, s_bckgd, v_bckgd = rgb_to_hsv(r_bckgd,g_bckgd,b_bckgd)
-    # h_bckgd_n, s_bckgd_n, v_bckgd_n = normalize_hsv_for_opencv(h=h_bckgd, s=s_bckgd, v=v_bckgd)
-    # r_gold, g_gold, b_gold = 158, 130, 90
-    # h_gold, s_gold, v_gold = rgb_to_hsv(r_gold,g_gold,b_gold)
-    # h_gold_n, s_gold_n, v_gold_n = normalize_hsv_for_opencv(h=h_gold, s=s_gold, v=v_gold)
-    # print("bckgd h", h_bckgd_n)
-    # print("bckgd boundaries", compute_hsv_boundaries(h_bckgd_n))
-    # print("gold h", h_gold_n)
-    # print("gold boundaries", compute_hsv_boundaries(h_gold_n))
-
-    path_image = Path("images/IMG_0148.jpg")
-    image = cv2.imread(str(path_image.resolve()))
-    # filtered_image = filter_color(image=image, colors=[(r_bckgd, g_bckgd, b_bckgd), (r_gold, g_gold, b_gold)])
-    # store_process_image(file_name="test_filtered_colors.jpg", image=filtered_image, image_path=path_image)
-
-
-if __name__ == "__main__":
-    main()

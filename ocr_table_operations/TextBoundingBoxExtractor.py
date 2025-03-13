@@ -1,9 +1,15 @@
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
-import image_processing
-from MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
-from ImagePreProcessor import ImagePreProcessor, GlobalThresholder
+# allows modules to access modules from outside the package
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# import modules from the project
+import image_processing as image_processing
+from cv_operations.MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
+from cv_operations.ImagePreProcessor import ImagePreProcessor, GlobalThresholder
 
 
 class BoundingBoxExtractionState(StrEnum):
@@ -220,10 +226,10 @@ class TextBoundingBoxExtractor:
 
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_otsu_image_without_icons_and_without_lines.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_without_lines.jpg")
     image = img_handler.load_image()
 
-    original_img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_otsu.jpg")
+    original_img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_extracted_table.jpg")
     original_image = original_img_handler.load_image()
 
     bounding_box_extractor = TextBoundingBoxExtractor(

@@ -1,7 +1,13 @@
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
 
-import image_processing
+# allows modules to access modules from outside the package
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# import modules from the project
+import image_processing as image_processing
 
 class MorphologicalOperation(StrEnum):
     DILATION = auto()

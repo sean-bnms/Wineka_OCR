@@ -3,7 +3,13 @@ from enum import StrEnum, Enum
 import subprocess
 import re
 
-import image_processing
+# allows modules to access modules from outside the package
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
+
+# import modules from the project
+import image_processing as image_processing
 
 type BoundingBox = tuple[int,int,int,int]
 
