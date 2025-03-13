@@ -1,17 +1,18 @@
-|Plat|Type de vin|Appelation
-0|Avocats aux crevettes|Blancs fins et savoureux|Mâcon, beaujolais
-1|Beignets de crevettes|Blancs vifs|Alsace riesling
-2|Beignets de crevettes|Blancs effervescents|Champagne, crémants
-3|Beignets de légumes|Blancs frais et fruités|Côtes-de-provence, vin-de-corse
-4|Bricks au thon|Rosés épicés et charnus|Languedoc, côtes-de-provence
-5|Carpaccio de bœuf|Rouges tendres et fringants|Beaujolais, anjou-gamay
-6|Carpaccio et tartare de saumon|Blancs séveux au fruité frais|Entre-deux-mers, picpoul-de-pinet (languedoc)
-7|Cassolette de fruits de mer|Blancs vifs et minéraux|Pouilly-fumé, alsace riesling
-8|Cassolette de poisson|Blancs fruités et onctueux|Saint-véran, minervois
-9|Escargots au beurre d’ail|- Blancs bien secs + Rosés épices|+ Chablis bien minéral, quincy, reuilly, pouilly-fumé + Languedoc, costières-de-nîmes (tavel, lirac, côtes-de- provence, bandol, côtes-du-roussillon..)
-10|Flammekueche|Blancs vifs et fruités|Alsace sylvaner, alsace pinot blanc
-11|Melon au jambon|Rosés généreux|Tavel, lirac, bandol, bellet
-12|Melon au jambon|Blancs moelleux|Muscat-de-mireval
-13|Pissaladière|Blancs tendres et aromatiques|Côtes-de-provence, patrimonio
-14|Pizza aux anchois|Blancs secs|Lirac
-15|Pizza aux anchois|Rosés épicés|Lirac, tavel, côtes-de-provence, cassis, coteaux-varois-en-provencé
+Unnamed: 0|Plat|Type de vin|Appelation
+0.0|Avocats aux crevettes|Blancs fins et savoureux|Mâcon, beaujolais
+1.0|Beignets de crevettes|Blancs vifs|Alsace riesling
+2.0|Beignets de crevettes|Blancs effervescents|Champagne, crémants
+3.0|Beignets de légumes|Blancs frais et fruités|Côtes-de-provence, vin-de-corse
+4.0|Bricks au thon|Rosés épicés et charnus|Languedoc, côtes-de-provence
+5.0|Carpaccio de bœuf|Rouges tendres et fringants|Beaujolais, anjou-gamay
+6.0|Carpaccio et tartare de saumon|Blancs séveux au fruité frais|Entre-deux-mers, picpoul-de-pinet (languedoc)
+7.0|Cassolette de fruits de mer|Blancs vifs et minéraux|Pouilly-fumé, alsace riesling
+8.0|Cassolette de poisson|Blancs fruités et onctueux|Saint-véran, minervois
+9.0|Escargots au beurre d’ail|Blancs bien secs|Chablis bien minéral, quincy, reuilly, pouilly-fumé
+10.0|Flammekueche|Blancs vifs et fruités|Alsace sylvaner, alsace pinot blanc
+11.0|Melon au jambon|Rosés généreux|Tavel, lirac, bandol, bellet
+12.0|Melon au jambon|Blancs moelleux|Muscat-de-mireval
+13.0|Pissaladière|Blancs tendres et aromatiques|Côtes-de-provence, patrimonio
+14.0|Pizza aux anchois|Blancs secs|Lirac
+15.0|Pizza aux anchois|Rosés épicés|Lirac, tavel, côtes-de-provence, cassis, coteaux-varois-en-provence
+16.0|Escargots au beurre d’ail|Rosés épicés|Languedoc, costières-de-nîmes (tavel, lirac, côtes-de- provence, bandol, côtes-du-roussillon)
