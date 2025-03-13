@@ -1,6 +1,6 @@
-import image_processing
 from dataclasses import dataclass, field
 
+import image_processing
 from MorphologicalTransformer import MorphologicalTransformer, MorphologicalOperation
 
 

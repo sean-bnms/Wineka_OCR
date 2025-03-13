@@ -1,6 +1,7 @@
-import image_processing
 from dataclasses import dataclass, field
 from enum import StrEnum, auto
+
+import image_processing
 
 class MorphologicalOperation(StrEnum):
     DILATION = auto()

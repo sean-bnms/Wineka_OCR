@@ -1,9 +1,11 @@
-import streamlit as st
-import pandas as pd
-from main import retrieve_csv
 from pathlib import Path
 import os
+
+import streamlit as st
+import pandas as pd
 from PIL import Image
+
+from main import retrieve_csv
 
 OCR_FINAL_PATH = "outputs"
 TABLE_INPUT_PATH = "images"

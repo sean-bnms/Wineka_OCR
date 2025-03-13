@@ -1,9 +1,9 @@
-import cv2
-import numpy as np
-from pathlib import Path
-
 from dataclasses import dataclass
 from enum import StrEnum, auto, Enum
+from pathlib import Path
+
+import cv2
+import numpy as np
 
 type Image = np.ndarray
 
