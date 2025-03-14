@@ -226,10 +226,10 @@ class TextBoundingBoxExtractor:
 
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_without_lines.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/debug/abat_1_otsu_image_without_icons_and_without_lines.jpg")
     image = img_handler.load_image()
 
-    original_img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_extracted_table.jpg")
+    original_img_handler = image_processing.ImageHandler(image_path="images/debug/abat_1_otsu.jpg")
     original_image = original_img_handler.load_image()
 
     bounding_box_extractor = TextBoundingBoxExtractor(

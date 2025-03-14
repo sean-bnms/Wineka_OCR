@@ -131,7 +131,6 @@ def main():
     gold_icons_color = (160, 130, 90)
     red_icons_color = (120, 60, 60)
     pink_icons_color = (140, 120, 110)
-    orange_icons_color = (130, 100, 70)
     # extraction with a simple thresholder
     table_icon_remover = TableIconsRemover(
         image=image,

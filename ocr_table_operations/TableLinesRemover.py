@@ -123,7 +123,7 @@ class TableLinesRemover:
         return self._transformation_states
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_without_icons.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/debug/abat_1_otsu_image_without_icons.jpg")
     image = img_handler.load_image()
     
     table_lines_remover = TableLinesRemover(

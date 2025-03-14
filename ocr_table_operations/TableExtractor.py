@@ -226,20 +226,20 @@ class TableExtractor:
 
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/IMG_0148.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/volaille_lapin_2.jpg")
     image = img_handler.load_image()
 
     # extraction with a simple thresholder
     table_extractor_1 = TableExtractor(
         image=image,
-        background_color=(163, 151, 152),
+        background_color=(135, 115, 105),
         thresholder=GlobalThresholder()
     )
     simple_threshold_extraction = table_extractor_1.run()
     # extraction with a global thresholder optimized with Otsu method
     table_extractor_2 = TableExtractor(
         image=image,
-        background_color=(163, 151, 152),
+        background_color=(135, 115, 105),
         thresholder=GlobalOptimizedThresholder()
     )
     otsu_extraction = table_extractor_2.run()
@@ -254,9 +254,16 @@ def main():
         states=table_extractor_2.get_transformation_states(),
         state=TableExtractionState.TABLE_EDGES
         )
+    img_path_4 = img_handler.store_debug_image(
+        folder_path=folder_path,
+        state_mapping=table_extractor_1.get_transformation_states_mapping(),
+        states=table_extractor_1.get_transformation_states(),
+        state=TableExtractionState.PREPROCESSING
+        )
     print(img_path_1)
     print(img_path_2)
     print(img_path_3)
+    print(img_path_4)
 
 
 if __name__ == "__main__":
