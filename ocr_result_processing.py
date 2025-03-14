@@ -6,7 +6,7 @@ import pandas as pd
 
 def clean_bullet_points(raw_table:list[list[str]]):
     # bullet points are wrongly recognized as these characters
-    pattern = r"\.\s|\*\s|\+\s|\-\s"
+    pattern = r"\.\s|\*\s|\+\s|\«\s|\‘\s| \- "
 
     clean_list = []
     for row in raw_table:
