@@ -174,13 +174,14 @@ def retrieve_csv(image_path:str, background_color:str, icons_colors:list[tuple[i
 
 def main():
     # some variables for the table extraction
-    background_color = (163, 151, 152)
-    gold_icons_color = (158, 130, 90)
-    red_icons_color = (163, 151, 152)
-    icons_colors = [gold_icons_color, red_icons_color]
+    background_color = (135, 115, 105)
+    gold_icons_color = (160, 130, 90)
+    red_icons_color = (120, 60, 60)
+    pink_icons_color = (140, 120, 110)
+    icons_colors = [gold_icons_color, red_icons_color, pink_icons_color]
 
     # path to store and load images
-    image_path = "images/IMG_0151.jpg"
+    image_path = "images/agneau_1.jpg"
     retrieve_csv(
         image_path=image_path,
         background_color=background_color,
