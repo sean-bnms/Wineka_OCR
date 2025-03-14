@@ -40,10 +40,16 @@ class TableIconsRemover:
         hsv = image_processing.convert_image_to_hsv(image=self.image)
         icons_kernel = image_processing.Kernel(
             shape=image_processing.KernelShape.ELLIPSE, 
-            dimensions=(20,20))
+            dimensions=(10,10) #trial and error, bigger it detects holes between letters and removes them
+            )
         
         # remove colors from icons and turn them to black pixels
-        color_masks = [ColorFilter(color=Color(rgb_color=color), image=self.image).create_color_mask(hsv=hsv)  for color in self.icon_colors]   
+        color_masks = [
+            ColorFilter(
+                color=Color(rgb_color=color), 
+                image=self.image,
+                hue_tolerance=5 #helps targeting better the colors
+                ).create_color_mask(hsv=hsv)  for color in self.icon_colors]   
         self.filtered_image = self.filter_icons(color_masks=color_masks, kernel=icons_kernel)
         image_preprocessor = ImagePreProcessor(image=self.filtered_image, thresholder=self.thresholder)
         binary_image = self.convert_to_binary_representation(image_preprocessor=image_preprocessor)
@@ -55,7 +61,8 @@ class TableIconsRemover:
         erosion_transformer = MorphologicalTransformer(
             image=self.inverted_binary_image, 
             operation=MorphologicalOperation.EROSION, 
-            kernel=icons_kernel)
+            kernel=icons_kernel,
+            nbr_iterations=2)
         self.eroded_icons_image = self.erode_icons(erosion_transformer=erosion_transformer)
         
         # following a dilation to ensure all icons pixels are considered
@@ -74,7 +81,12 @@ class TableIconsRemover:
         - color_masks: the masks applied to perform color filtering
         - kernel: the kernel used to apply morphological transformations on the icons
         '''
-        mask = sum(color_masks)
+        # sometimes color masks overlap, if we just sum them they cancel each other
+        # therefore we compute the union of the masks instead when combining them
+        mask = color_masks[0]
+        if len(color_masks) > 1:
+            for i in range(1,len(color_masks)):
+                mask = mask | color_masks[i]
         # apply a morphology operation, closing: it results in a Dilation followed by Erosion
         # helps filling small pixel gaps in an area (e.g. holes in a shape because of different lighting conditions)
         closing_transformer = MorphologicalTransformer(
@@ -83,8 +95,8 @@ class TableIconsRemover:
             kernel=kernel)
         morph = closing_transformer.apply()
         # filters
-        mask = 255 - morph
-        return image_processing.apply_bitwise_and(image1=self.image, image2=self.image, mask=mask)
+        mask_filter = 255 - morph
+        return image_processing.apply_bitwise_and(image1=self.image, image2=self.image, mask=mask_filter)
     
     def convert_to_binary_representation(self, image_preprocessor:ImagePreProcessor) -> image_processing.Image:
         return image_preprocessor.apply()
@@ -113,15 +125,17 @@ class TableIconsRemover:
         return self._transformation_states
 
 def main():
-    img_handler = image_processing.ImageHandler(image_path="images/debug/IMG_0148_otsu.jpg")
+    img_handler = image_processing.ImageHandler(image_path="images/debug/abat_1_otsu.jpg")
     image = img_handler.load_image()
 
-    gold_icons_color = (158, 130, 90)
-    red_icons_color = (163, 151, 152)
+    gold_icons_color = (160, 130, 90)
+    red_icons_color = (120, 60, 60)
+    pink_icons_color = (140, 120, 110)
+    orange_icons_color = (130, 100, 70)
     # extraction with a simple thresholder
     table_icon_remover = TableIconsRemover(
         image=image,
-        icon_colors=[gold_icons_color, red_icons_color],
+        icon_colors=[gold_icons_color, red_icons_color, pink_icons_color],
         thresholder=GlobalThresholder()
     )
     image_without_icons = table_icon_remover.run()
@@ -134,8 +148,30 @@ def main():
         states=table_icon_remover.get_transformation_states(),
         state=IconRemovingState.ICONS_FILTERING
         )
+    img_path_3 = img_handler.store_debug_image(
+        folder_path=folder_path,
+        state_mapping=table_icon_remover.get_transformation_states_mapping(),
+        states=table_icon_remover.get_transformation_states(),
+        state=IconRemovingState.BINARY_REPRESENTATION
+        )
+    img_path_4 = img_handler.store_debug_image(
+        folder_path=folder_path,
+        state_mapping=table_icon_remover.get_transformation_states_mapping(),
+        states=table_icon_remover.get_transformation_states(),
+        state=IconRemovingState.ICONS_DILATION
+        )
+    img_path_5 = img_handler.store_debug_image(
+        folder_path=folder_path,
+        state_mapping=table_icon_remover.get_transformation_states_mapping(),
+        states=table_icon_remover.get_transformation_states(),
+        state=IconRemovingState.ICONS_EROSION
+        )
     print(img_path_1)
     print(img_path_2)
+    print(img_path_3)
+    print(img_path_4)
+    print(img_path_5)
+
 
 
 if __name__ == "__main__":
